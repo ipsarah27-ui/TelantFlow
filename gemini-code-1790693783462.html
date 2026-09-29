@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>內部人才流動與技能分析平台 | Talent Mobility Platform</title>
+<style>
+:root{
+  --bg:#f1f5f9; --card:#ffffff; --line:#e2e8f0;
+  --ink:#1e293b; --muted:#64748b;
+  --primary:#2563eb; --primary-weak:#dbeafe; --primary-strong:#1d4ed8;
+  --ok:#16a34a; --ok-weak:#dcfce7; --warn:#d97706; --warn-weak:#fef3c7;
+  --bad:#dc2626; --bad-weak:#fee2e2; --info:#0284c7; --info-weak:#e0f2fe;
+  --dark:#0f172a; --dark-2:#1e293b;
+  --radius:14px; --shadow:0 1px 3px rgba(15,23,42,.08),0 8px 24px -12px rgba(15,23,42,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:24px}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:14px}
+
+/* ---------- Header ---------- */
+header{background:var(--dark);color:#fff;position:sticky;top:0;z-index:40;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.hd-inner{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.brand h1{font-size:16px;font-weight:700;letter-spacing:.3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.roles,.langs{display:flex;gap:4px;background:var(--dark-2);padding:4px;border-radius:10px;border:1px solid #334155}
+.roles button,.langs button{padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#cbd5e1;transition:.15s}
+.roles button:hover,.langs button:hover{color:#fff}
+.roles button.on,.langs button.on{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.4)}
+
+/* ---------- Layout ---------- */
+main{max-width:1100px;margin:0 auto;padding:18px 16px}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 12px}
+.section-title h2{font-size:17px;font-weight:700}
+.section-title .hint{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.card h3{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.grid{display:grid;gap:12px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}}
+@media(max-width:520px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* ---------- Stat cards ---------- */
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+.stat .num{font-size:24px;font-weight:800;color:var(--primary)}
+.stat .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:700;transition:.15s;border:1px solid transparent}
+.btn-p{background:var(--primary);color:#fff}
+.btn-p:hover{background:var(--primary-strong)}
+.btn-o{background:#fff;border-color:var(--line);color:var(--ink)}
+.btn-o:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-bad{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px}
+
+/* ---------- Badges ---------- */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.b-pending{background:var(--warn-weak);color:var(--warn)}
+.b-approved{background:var(--ok-weak);color:var(--ok)}
+.b-rejected{background:var(--bad-weak);color:var(--bad)}
+.b-interview{background:var(--info-weak);color:var(--info)}
+.b-plain{background:#f1f5f9;color:var(--muted)}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--primary-weak);color:var(--primary-strong);font-size:11px;font-weight:600;margin:2px 3px 2px 0}
+
+/* ---------- Lists ---------- */
+.list-item{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff;cursor:pointer}
+.list-item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.list-item .ttl{font-weight:700;font-size:14px}
+.list-item .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.list-item .desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* ---------- Form ---------- */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+
+/* ---------- Timeline ---------- */
+.tl{list-style:none;margin-top:10px}
+.tl li{position:relative;padding:0 0 14px 22px;border-left:2px solid var(--line);margin-left:6px}
+.tl li:last-child{border-left-color:transparent;padding-bottom:0}
+.tl li::before{content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.tl li.done::before{background:var(--ok)}
+.tl li.now::before{background:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+.tl .t-t{font-size:13px;font-weight:600}
+.tl .t-d{font-size:12px;color:var(--muted)}
+
+/* ---------- Table ---------- */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);background:#f8fafc;font-weight:700}
+tr:last-child td{border-bottom:none}
+
+/* ---------- Charts ---------- */
+.gauge-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.gauge{position:relative;width:120px;height:120px;flex-shrink:0}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .gv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--primary)}
+
+/* ---------- Toast ---------- */
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:86vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- Modal ---------- */
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-end;justify-content:center;z-index:60;padding:0}
+.modal{background:#fff;width:100%;max-width:560px;max-height:84vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:20px 18px 18px;animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.modal .x{color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:26px 10px}
+.perf{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.perf .p{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px}
+.perf .p b{display:block;font-size:15px;margin-top:2px;color:var(--ink)}
+.notice{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:var(--info-weak);color:#075985;font-size:12px;line-height:1.5;margin-bottom:12px}
+.notice b{display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd-inner">
+    <div class="brand">
+      <div class="logo">&#129504;</div>
+      <h1 id="appTitle">內部人才流動與技能分析平台</h1>
+    </div>
+    <div class="ctrls">
+      <nav class="roles" id="roles">
+        <button data-role="employee" class="on" onclick="switchRole('employee')">員工</button>
+        <button data-role="manager" onclick="switchRole('manager')">部門主管</button>
+        <button data-role="hr" onclick="switchRole('hr')">人事部</button>
+        <button data-role="admin" onclick="switchRole('admin')">系統管理員</button>
+      </nav>
+      <div class="langs" id="langs">
+        <button data-lang="zh-Hant" class="on" onclick="switchLang('zh-Hant')">繁中</button>
+        <button data-lang="zh-Hans" onclick="switchLang('zh-Hans')">簡中</button>
+        <button data-lang="en" onclick="switchLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div id="toast"></div>
+<div class="modal-mask" id="modalMask" style="display:none" onclick="if(event.target===this)closeModal()"></div>
+
+<script>
+/* ================= 多語言字典 (i18n) ================= */
+var currentLang = "zh-Hant";
+var currentRole = "employee";
+
+var I18N = {
+  "zh-Hant": {
+    appTitle: "內部人才流動與技能分析平台",
+    role_employee: "員工", role_manager: "部門主管", role_hr: "人事部", role_admin: "系統管理員",
+    mySkills: "我的技能檔案", position: "現任", tenure: "年資", tenureUnit: "年",
+    aiAnalysis: "AI 技能 Gap 分析", aiHint: "點擊右側職缺，查看個人化匹配評估", aiEmpty: "點擊下方職缺卡片查看 AI 分析結果",
+    openJobs: "站內即時空缺與微型專案", openJobsHint: "每日 00:00 自動更新",
+    fullTime: "全職空缺", microProject: "微型項目", match: "匹配",
+    headcount: "需求人數", cycle: "專案週期", applyBtn: "＋ 申請內部轉職",
+    myTransfers: "我的轉職申請", certSection: "技能認證", uploadCert: "＋ 上傳認證",
+    notices: "部門通知", resetData: "重置示範數據",
+    // 狀態
+    st_manager: "待主管初審", st_hr: "人事部終審", st_target: "待目標部門回覆", st_interview: "面試中",
+    st_approved: "已通過", st_rejected: "已拒絕", st_appeal: "申訴覆核中",
+    cert_approved: "已認證", cert_rejected: "已拒絕", cert_pending: "審核中",
+    // 主管頁面
+    teamHealth: "團隊技能健康度", members: "團隊成員", pendingReview: "待初審申請",
+    skillCoverage: "核心技能覆蓋率", gapNotice: "高需求技能缺口", suggestNotice: "建議：安排內訓工作坊與線上課程補強。",
+    transferReview: "轉職申請初審", perfSyncNotice: "績效記錄已由績效系統同步", certReview: "認證審核",
+    approveBtn: "初審通過", rejectBtn: "初審不通過", certApprove: "認證通過",
+    // HR 頁面
+    hrPending: "待終審申請", hrTarget: "待目標部門回覆", hrInterview: "面試中", hrAppeal: "申訴覆核",
+    perfModule: "績效數據整合模組", perfDesc: "已連線績效管理系統，自動同步考核評級、KPI 達成率與 360 評估。",
+    hrApprove: "終審通過（推送至目標部門）", hrReject: "駁回申請",
+    appealReview: "申訴案件覆核", appealAccept: "重啟審核流程", appealKeep: "維持原駁回決定",
+    // Admin 頁面
+    adminTitle: "系統維護與控制台", dataMgmt: "數據管理", dataDesc: "重置 localstorage 本地緩存以還原初始測試數據。",
+    jobMgmt: "職缺發布管理", newJob: "＋ 發布新職缺", colTitle: "職務名稱", colDept: "部門", colType: "類型", colCount: "需求人數", colStatus: "狀態", colAction: "操作",
+    // Modal
+    applyTitle: "申請內部轉職", targetJob: "目標職位", applyReason: "申請原因", reasonPlaceholder: "請說明轉職動機與相關經驗",
+    workflowNotice: "流程說明：員工申請 → 直屬主管初審（連結績效記錄）→ 人事部終審 → 推送目標部門。",
+    submitApply: "提交申請", uploadCertTitle: "上傳技能認證", certName: "認證名稱", certIssuer: "頒發機構",
+    appealTitle: "提出申訴", appealContent: "申訴內容", appealPlaceholder: "請說明對拒絕決定的異議與補充資料", submitAppeal: "提交申訴",
+    jobTitleLabel: "職務名稱", jobDeptLabel: "所屬部門", jobTypeLabel: "類型", jobCountLabel: "需求人數", jobSkillsLabel: "所需技能標籤（以逗號分開）", submitJob: "發布職缺",
+    toastApplySuccess: "申請已提交，等待直屬主管初審", toastAppealSuccess: "申訴已提交，等待人事部覆核", toastCertSuccess: "認證已提交，等待主管審核", toastReset: "示範數據已重置"
+  },
+  "zh-Hans": {
+    appTitle: "内部人才流动与技能分析平台",
+    role_employee: "员工", role_manager: "部门主管", role_hr: "人事部", role_admin: "系统管理员",
+    mySkills: "我的技能档案", position: "现任", tenure: "司龄", tenureUnit: "年",
+    aiAnalysis: "AI 技能 Gap 分析", aiHint: "点击右侧职位，查看个性化匹配评估", aiEmpty: "点击下方职位卡片查看 AI 分析结果",
+    openJobs: "站内即时空缺与微型项目", openJobsHint: "每日 00:00 自动更新",
+    fullTime: "全职空缺", microProject: "微型项目", match: "匹配",
+    headcount: "需求人数", cycle: "项目周期", applyBtn: "＋ 申请内部转岗",
+    myTransfers: "我的转岗申请", certSection: "技能认证", uploadCert: "＋ 上传认证",
+    notices: "部门通知", resetData: "重置示范数据",
+    st_manager: "待主管初审", st_hr: "人事部终审", st_target: "待目标部门回复", st_interview: "面试中",
+    st_approved: "已通过", st_rejected: "已拒绝", st_appeal: "申诉复核中",
+    cert_approved: "已认证", cert_rejected: "已拒绝", cert_pending: "审核中",
+    teamHealth: "团队技能健康度", members: "团队成员", pendingReview: "待初审申请",
+    skillCoverage: "核心技能覆盖率", gapNotice: "高需求技能缺口", suggestNotice: "建议：安排内训工作坊与在线课程补强。",
+    transferReview: "转岗申请初审", perfSyncNotice: "绩效记录已由绩效系统同步", certReview: "认证审核",
+    approveBtn: "初审通过", rejectBtn: "初审不通过", certApprove: "认证通过",
+    hrPending: "待终审申请", hrTarget: "待目标部门回复", hrInterview: "面试中", hrAppeal: "申诉复核",
+    perfModule: "绩效数据整合模块", perfDesc: "已连线绩效管理系统，自动同步考核评级、KPI 达成率与 360 评估。",
+    hrApprove: "终审通过（推送至目标部门）", hrReject: "驳回申请",
+    appealReview: "申诉案件复核", appealAccept: "重启审核流程", appealKeep: "维持原驳回决定",
+    adminTitle: "系统维护与控制台", dataMgmt: "数据管理", dataDesc: "重置 localstorage 本地缓存以还原初始测试数据。",
+    jobMgmt: "职位发布管理", newJob: "＋ 发布新职位", colTitle: "职务名称", colDept: "部门", colType: "类型", colCount: "需求人数", colStatus: "状态", colAction: "操作",
+    applyTitle: "申请内部转岗", targetJob: "目标职位", applyReason: "申请原因", reasonPlaceholder: "请说明转岗动机与相关经验",
+    workflowNotice: "流程说明：员工申请 → 直属主管初审（链接绩效记录）→ 人事部终审 → 推送目标部门。",
+    submitApply: "提交申请", uploadCertTitle: "上传技能认证", certName: "认证名称", certIssuer: "颁发机构",
+    appealTitle: "提出申诉", appealContent: "申诉内容", appealPlaceholder: "请说明对拒绝决定的异议与补充资料", submitAppeal: "提交申诉",
+    jobTitleLabel: "职务名称", jobDeptLabel: "所属部门", jobTypeLabel: "类型", jobCountLabel: "需求人数", jobSkillsLabel: "所需技能标签（以逗号分开）", submitJob: "发布职位",
+    toastApplySuccess: "申请已提交，等待直属主管初审", toastAppealSuccess: "申诉已提交，等待人事部复核", toastCertSuccess: "认证已提交，等待主管审核", toastReset: "示范数据已重置"
+  },
+  "en": {
+    appTitle: "Internal Talent Mobility & Skill Analytics Platform",
+    role_employee: "Employee", role_manager: "Line Manager", role_hr: "HR Dept", role_admin: "System Admin",
+    mySkills: "My Skill Profile", position: "Current", tenure: "Tenure", tenureUnit: "yrs",
+    aiAnalysis: "AI Skill Gap Analysis", aiHint: "Click a job listing below to view personalized match", aiEmpty: "Click a job card to view AI match analysis",
+    openJobs: "Internal Job Openings & Micro-Projects", openJobsHint: "Updated daily at 00:00",
+    fullTime: "Full-Time", microProject: "Micro-Project", match: "Match",
+    headcount: "Headcount", cycle: "Duration", applyBtn: "＋ Apply for Transfer",
+    myTransfers: "My Applications", certSection: "Skill Certifications", uploadCert: "＋ Upload Cert",
+    notices: "Announcements", resetData: "Reset Demo Data",
+    st_manager: "Pending Manager Review", st_hr: "HR Final Review", st_target: "Pending Target Dept", st_interview: "Interviewing",
+    st_approved: "Approved", st_rejected: "Rejected", st_appeal: "Appeal Pending",
+    cert_approved: "Verified", cert_rejected: "Rejected", cert_pending: "Pending Review",
+    teamHealth: "Team Skill Health", members: "Team Members", pendingReview: "Pending Reviews",
+    skillCoverage: "Core Skill Coverage", gapNotice: "High-demand Skill Gaps", suggestNotice: "Recommendation: Schedule internal workshops & online courses.",
+    transferReview: "Transfer Application Review", perfSyncNotice: "Performance records synced automatically", certReview: "Cert Verification",
+    approveBtn: "Approve Initial", rejectBtn: "Reject", certApprove: "Verify Cert",
+    hrPending: "Pending Final Review", hrTarget: "Awaiting Target Dept", hrInterview: "In Interview", hrAppeal: "Under Appeal",
+    perfModule: "Performance Integration Module", perfDesc: "Connected with PMS to automatically sync performance ratings, KPI rates, and 360 reviews.",
+    hrApprove: "Pass Final Review (Push to Target)", hrReject: "Reject Application",
+    appealReview: "Appeal Case Review", appealAccept: "Reopen Process", appealKeep: "Uphold Rejection",
+    adminTitle: "System Admin & Maintenance", dataMgmt: "Data Management", dataDesc: "Reset localstorage to restore initial demo data.",
+    jobMgmt: "Job Postings Management", newJob: "＋ Post New Job", colTitle: "Job Title", colDept: "Department", colType: "Type", colCount: "Headcount", colStatus: "Status", colAction: "Actions",
+    applyTitle: "Apply for Internal Transfer", targetJob: "Target Job", applyReason: "Reason for Application", reasonPlaceholder: "Explain your motivation and relevant experience",
+    workflowNotice: "Workflow: Employee Application → Manager Initial Review → HR Final Approval → Target Dept Routing.",
+    submitApply: "Submit Application", uploadCertTitle: "Upload Skill Certificate", certName: "Cert Name", certIssuer: "Issuing Body",
+    appealTitle: "Submit Appeal", appealContent: "Appeal Reason", appealPlaceholder: "Explain your grounds for appeal and additional info", submitAppeal: "Submit Appeal",
+    jobTitleLabel: "Job Title", jobDeptLabel: "Department", jobTypeLabel: "Type", jobCountLabel: "Headcount", jobSkillsLabel: "Required Skills (comma separated)", submitJob: "Post Job",
+    toastApplySuccess: "Application submitted for manager review", toastAppealSuccess: "Appeal submitted for HR review", toastCertSuccess: "Certificate submitted for approval", toastReset: "Demo data reset"
+  }
+};
+
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N["zh-Hant"][key]) || key;
+}
+
+/* ================= 資料層 ================= */
+var DEPTS = ["客務部","市場推廣部","人力資源部","資訊科技部","財務部"];
+var EMPLOYEE = { id:"E001", name:"陳曉明", dept:"資訊科技部", pos:"系統工程師", tenure:4,
+  skills:[{n:"Python",l:4},{n:"數據分析",l:3},{n:"雲端架構",l:3},{n:"JavaScript",l:3},{n:"SQL",l:2}] };
+
+var SEED_JOBS = [
+  { id:"J001", title:"數據分析師", dept:"市場推廣部", type:"full", headcount:2, skills:["Python","數據分析","SQL","可視化"], status:"open" },
+  { id:"J002", title:"雲端工程師", dept:"資訊科技部", type:"full", headcount:1, skills:["雲端架構","Docker","Kubernetes","Python"], status:"open" },
+  { id:"J003", title:"客戶體驗專員", dept:"客務部", type:"full", headcount:3, skills:["客戶服務","溝通協調","數據分析"], status:"open" },
+  { id:"J004", title:"人力資源數據助理", dept:"人力資源部", type:"micro", cycle:"6 個月", headcount:1, skills:["Excel","數據分析","報告撰寫"], status:"open" },
+  { id:"J005", title:"財務分析師", dept:"財務部", type:"full", headcount:1, skills:["Excel","財務分析","SQL","數據分析"], status:"open" },
+  { id:"J006", title:"前端開發員", dept:"資訊科技部", type:"micro", cycle:"3 個月", headcount:2, skills:["JavaScript","React","CSS"], status:"open" }
+];
+
+var SEED_EMP = [
+  { id:"E001", name:"陳曉明", dept:"資訊科技部", pos:"系統工程師", tenure:4, transferable:true,
+    skills:[{n:"Python",l:4},{n:"數據分析",l:3},{n:"雲端架構",l:3},{n:"JavaScript",l:3},{n:"SQL",l:2}] },
+  { id:"E002", name:"林嘉欣", dept:"市場推廣部", pos:"市場助理", tenure:2, transferable:true,
+    skills:[{n:"數據分析",l:3},{n:"Excel",l:4},{n:"溝通協調",l:4},{n:"報告撰寫",l:3}] },
+  { id:"E003", name:"黃志強", dept:"資訊科技部", pos:"程式設計師", tenure:3, transferable:true,
+    skills:[{n:"JavaScript",l:4},{n:"React",l:3},{n:"Python",l:3},{n:"SQL",l:3},{n:"Docker",l:2}] },
+  { id:"E004", name:"張佩琪", dept:"客務部", pos:"客戶服務主任", tenure:5, transferable:true,
+    skills:[{n:"客戶服務",l:5},{n:"溝通協調",l:4},{n:"數據分析",l:2},{n:"Excel",l:3}] }
+];
+
+var SEED_CERTS = [
+  { id:"C001", empId:"E001", name:"AWS 解決方案架構師 (Associate)", issuer:"AWS", status:"approved", date:1719302400000 },
+  { id:"C002", empId:"E001", name:"Google 數據分析專業證書", issuer:"Google", status:"approved", date:1730419200000 },
+  { id:"C003", empId:"E003", name:"React 開發者認證", issuer:"Meta", status:"pending", date:1751328000000 }
+];
+
+var SEED_TRANSFERS = [
+  { id:"T001", empId:"E003", empName:"黃志強", fromDept:"資訊科技部", targetJobId:"J002", reason:"希望專注雲端基礎設施領域，已考取相關證書。",
+    perf:{ rating:"A", kpi:94, review360:88, note:"年度考核表現優異，技術能力獲團隊肯定。" },
+    status:"manager", timeline:[ {s:"員工提交申請",t:1752350400000,d:"申請轉往 雲端工程師（資訊科技部）"} ], history:[] },
+  { id:"T002", empId:"E002", empName:"林嘉欣", fromDept:"市場推廣部", targetJobId:"J004", reason:"想參與人力資源數據項目，發揮分析專長。",
+    perf:{ rating:"B+", kpi:85, review360:90, note:"數據處理能力出色，跨部門協作良好。" },
+    status:"hr", timeline:[ {s:"員工提交申請",t:1752105600000,d:"申請轉往 人力資源數據助理（人力資源部）"}, {s:"直屬主管初審通過",t:1752192000000,d:"主管確認工作交接可行"} ], history:[] }
+];
+
+var SEED_NOTICES = [
+  { id:"N001", dept:"人力資源部", title:"轉職流程更新公告", content:"內部轉職申請將統一經人事部審核並連結績效記錄，請各部門主管於 3 個工作天內完成初審。", time:1752278400000 }
+];
+
+var STATE = null;
+function loadState(){
+  var raw = null;
+  try { raw = localStorage.getItem("talent_platform_v2"); } catch(e){}
+  if (raw) {
+    try {
+      var s = JSON.parse(raw);
+      STATE = {
+        jobs: (s.jobs && Array.isArray(s.jobs)) ? s.jobs : SEED_JOBS.slice(),
+        employees: (s.employees && Array.isArray(s.employees)) ? s.employees : SEED_EMP.slice(),
+        certs: (s.certs && Array.isArray(s.certs)) ? s.certs : SEED_CERTS.slice(),
+        transfers: (s.transfers && Array.isArray(s.transfers)) ? s.transfers : SEED_TRANSFERS.slice(),
+        notices: (s.notices && Array.isArray(s.notices)) ? s.notices : SEED_NOTICES.slice()
+      };
+    } catch(e){ STATE = null; }
+  }
+  if (!STATE) {
+    STATE = { jobs: SEED_JOBS.slice(), employees: SEED_EMP.slice(), certs: SEED_CERTS.slice(), transfers: SEED_TRANSFERS.slice(), notices: SEED_NOTICES.slice() };
+  }
+}
+function saveState(){
+  try { localStorage.setItem("talent_platform_v2", JSON.stringify(STATE)); } catch(e){}
+}
+function resetState(){
+  STATE = { jobs: SEED_JOBS.slice(), employees: SEED_EMP.slice(), certs: SEED_CERTS.slice(), transfers: SEED_TRANSFERS.slice(), notices: SEED_NOTICES.slice() };
+  saveState(); render(); toast(t("toastReset"));
+}
+
+/* ================= 工具函數 ================= */
+function uid(p){ return p + "_" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36); }
+function fmtDate(ts){ var d=new Date(ts); var p=function(n){return n<10?"0"+n:""+n}; return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(msg){ var el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove("show");},2200); }
+function jobById(id){ for(var i=0;i<STATE.jobs.length;i++){ if(STATE.jobs[i].id===id) return STATE.jobs[i]; } return null; }
+function empById(id){ for(var i=0;i<STATE.employees.length;i++){ if(STATE.employees[i].id===id) return STATE.employees[i]; } return null; }
+function transferById(id){ for(var i=0;i<STATE.transfers.length;i++){ if(STATE.transfers[i].id===id) return STATE.transfers[i]; } return null; }
+function certById(id){ for(var i=0;i<STATE.certs.length;i++){ if(STATE.certs[i].empId===id || STATE.certs[i].id===id) return STATE.certs[i]; } return null; }
+function empCerts(empId,onlyApproved){ var out=[]; for(var i=0;i<STATE.certs.length;i++){ if(STATE.certs[i].empId===empId && (!onlyApproved || STATE.certs[i].status==="approved")) out.push(STATE.certs[i]); } return out; }
+function myTransfers(empId){ var out=[]; for(var i=0;i<STATE.transfers.length;i++){ if(STATE.transfers[i].empId===empId) out.push(STATE.transfers[i]); } return out; }
+
+function matchScore(emp, job){
+  if(!emp || !job) return 0;
+  var need = job.skills || [];
+  if(need.length===0) return 0;
+  var hit=0;
+  for(var i=0;i<need.length;i++){
+    for(var j=0;j<emp.skills.length;j++){
+      if(emp.skills[j].n === need[i]){ hit++; break; }
+    }
+  }
+  return Math.round(hit/need.length*100);
+}
+function skillGaps(emp, job){
+  var need = job.skills || [], out=[];
+  for(var i=0;i<need.length;i++){
+    var has=null;
+    for(var j=0;j<emp.skills.length;j++){ if(emp.skills[j].n===need[i]){ has=emp.skills[j]; break; } }
+    if(!has) out.push(need[i]);
+    else if(has.l<3) out.push(need[i]+"（Basic）");
+  }
+  return out;
+}
+
+/* Modal 控制 */
+function showModal(title, bodyHtml){
+  var mask = document.getElementById("modalMask");
+  mask.innerHTML = '<div class="modal"><h3><span>'+title+'</span><span class="x" onclick="closeModal()">&times;</span></h3><div>'+bodyHtml+'</div></div>';
+  mask.style.display = "flex";
+}
+function closeModal(){
+  var mask = document.getElementById("modalMask");
+  mask.style.display = "none";
+  mask.innerHTML = "";
+}
+
+/* ================= 狀態徽章 ================= */
+function statusBadge(st){
+  var map = {
+    manager:["b-pending", t("st_manager")], hr:["b-pending", t("st_hr")],
+    target:["b-interview", t("st_target")], interview:["b-interview", t("st_interview")],
+    approved:["b-approved", t("st_approved")], rejected:["b-rejected", t("st_rejected")], appeal:["b-warn", t("st_appeal")]
+  };
+  var m = map[st] || ["b-plain",st];
+  return '<span class="badge '+m[0]+'">'+m[1]+'</span>';
+}
+function certBadge(st){
+  if(st==="approved") return '<span class="badge b-approved">'+t("cert_approved")+'</span>';
+  if(st==="rejected") return '<span class="badge b-rejected">'+t("cert_rejected")+'</span>';
+  return '<span class="badge b-pending">'+t("cert_pending")+'</span>';
+}
+
+/* ================= 語言與角色切換 ================= */
+function switchLang(lang){
+  currentLang = lang;
+  document.getElementById("appTitle").textContent = t("appTitle");
+  var btns = document.querySelectorAll("#langs button");
+  for(var i=0;i<btns.length;i++){
+    btns[i].className = btns[i].getAttribute("data-lang")===currentLang ? "on" : "";
+  }
+  renderRolesNav();
+  render();
+}
+
+function switchRole(r){ currentRole = r; render(); window.scrollTo(0,0); }
+
+function renderRolesNav(){
+  var nav = document.getElementById("roles");
+  nav.innerHTML = '<button data-role="employee" class="'+(currentRole==="employee"?"on":"")+'" onclick="switchRole(\'employee\')">'+t("role_employee")+'</button>'+
+                  '<button data-role="manager" class="'+(currentRole==="manager"?"on":"")+'" onclick="switchRole(\'manager\')">'+t("role_manager")+'</button>'+
+                  '<button data-role="hr" class="'+(currentRole==="hr"?"on":"")+'" onclick="switchRole(\'hr\')">'+t("role_hr")+'</button>'+
+                  '<button data-role="admin" class="'+(currentRole==="admin"?"on":"")+'" onclick="switchRole(\'admin\')">'+t("role_admin")+'</button>';
+}
+
+/* ================= 渲染入口 ================= */
+function render(){
+  var el = document.getElementById("main");
+  var html = "";
+  if(currentRole==="employee") html = viewEmployee();
+  else if(currentRole==="manager") html = viewManager();
+  else if(currentRole==="hr") html = viewHR();
+  else html = viewAdmin();
+  el.innerHTML = html;
+}
+
+/* ================= 員工視圖 ================= */
+function viewEmployee(){
+  var me = EMPLOYEE;
+  var myCerts = empCerts(me.id,false);
+  var approved = myCerts.filter(function(c){return c.status==="approved";}).length;
+  var myTrans = myTransfers(me.id);
+  var h = "";
+  h += '<div class="card">';
+  h += '<div class="grid grid-2">';
+  h += '<div><h3>'+t("mySkills")+'</h3><p style="font-size:14px;font-weight:700">'+esc(me.name)+'</p>';
+  h += '<p class="sub" style="font-size:13px;color:var(--muted);margin:4px 0">'+t("position")+'：'+esc(me.dept)+' '+esc(me.pos)+' ｜ '+t("tenure")+'：'+me.tenure+' '+t("tenureUnit")+'</p>';
+  h += '<div style="margin-top:8px">';
+  for(var i=0;i<me.skills.length;i++){
+    h += '<span class="tag">'+esc(me.skills[i].n)+' Lv.'+me.skills[i].l+'</span>';
+  }
+  h += '</div>';
+  h += '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">';
+  h += '<span class="badge b-approved">'+t("cert_approved")+': '+approved+'</span>';
+  h += '</div></div>';
+  h += '<div><h3>'+t("aiAnalysis")+'</h3><p style="font-size:12px;color:var(--muted)">'+t("aiHint")+'</p><div id="aiBox" class="empty">'+t("aiEmpty")+'</div></div>';
+  h += '</div></div>';
+
+  // 空缺職位
+  h += '<div class="section-title"><h2>'+t("openJobs")+'</h2><span class="hint">'+t("openJobsHint")+'</span></div>';
+  var open = STATE.jobs.filter(function(j){return j.status==="open";});
+  if(open.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var j=0;j<open.length;j++){
+    var job = open[j];
+    var score = matchScore(me, job);
+    var scoreColor = score>=70 ? "var(--ok)" : (score>=40 ? "var(--warn)" : "var(--muted)");
+    h += '<div class="list-item" onclick="openAi(\''+job.id+'\')">';
+    h += '<div class="row"><div><span class="ttl">'+esc(job.title)+'</span> <span class="badge '+(job.type==="full"?"b-plain":"b-interview")+'">'+(job.type==="full"?t("fullTime"):t("microProject"))+'</span></div>';
+    h += '<div style="text-align:right"><span style="font-size:20px;font-weight:800;color:'+scoreColor+'">'+score+'%</span><div style="font-size:11px;color:var(--muted)">'+t("match")+'</div></div></div>';
+    h += '<div class="sub">'+esc(job.dept)+' ｜ '+(job.type==="full"?t("headcount")+"："+job.headcount:t("cycle")+"："+esc(job.cycle))+'</div>';
+    h += '<div style="margin-top:6px">';
+    for(var s=0;s<job.skills.length;s++){ h += '<span class="tag">'+esc(job.skills[s])+'</span>'; }
+    h += '</div></div>';
+  }
+  h += '<div style="margin-top:12px"><button class="btn btn-p" onclick="openApply()">'+t("applyBtn")+'</button></div>';
+
+  // 我的申請
+  h += '<div class="section-title"><h2>'+t("myTransfers")+'</h2><span class="hint">'+myTrans.length+'</span></div>';
+  if(myTrans.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var k=0;k<myTrans.length;k++){
+    var tItem = myTrans[k];
+    var tj = jobById(tItem.targetJobId);
+    h += '<div class="list-item" style="cursor:default">';
+    h += '<div class="row"><div><span class="ttl">'+(tj?esc(tj.title):tItem.targetJobId)+'</span></div>'+statusBadge(tItem.status)+'</div>';
+    h += '<div class="sub">'+(tj?tj.dept:"-")+' ｜ '+fmtDate(tItem.timeline[0].t)+'</div>';
+    h += '<ul class="tl">';
+    for(var m=0;m<tItem.timeline.length;m++){
+      var step = tItem.timeline[m];
+      var cls = (m===tItem.timeline.length-1) ? "now" : "done";
+      h += '<li class="'+cls+'"><div class="t-t">'+esc(step.s)+'</div><div class="t-d">'+esc(step.d)+' ｜ '+fmtDate(step.t)+'</div></li>';
+    }
+    h += '</ul>';
+    if(tItem.status==="rejected"){
+      h += '<div class="actions"><button class="btn btn-warn btn-sm" onclick="appeal(\''+tItem.id+'\')">'+t("appealTitle")+'</button></div>';
+    }
+    h += '</div>';
+  }
+
+  // 認證
+  h += '<div class="section-title"><h2>'+t("certSection")+'</h2></div>';
+  h += '<div class="card"><button class="btn btn-o btn-sm" onclick="openCertForm()">'+t("uploadCert")+'</button>';
+  h += '<div style="margin-top:10px">';
+  for(var c=0;c<myCerts.length;c++){
+    var cert = myCerts[c];
+    h += '<div class="list-item" style="margin-bottom:8px;cursor:default">';
+    h += '<div class="row"><div><span class="ttl">'+esc(cert.name)+'</span></div>'+certBadge(cert.status)+'</div>';
+    h += '<div class="sub">'+esc(cert.issuer)+' ｜ '+fmtDate(cert.date)+'</div></div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+/* AI 分析 */
+function openAi(jobId){
+  var me = EMPLOYEE, job = jobById(jobId);
+  if(!job) return;
+  var score = matchScore(me, job);
+  var gaps = skillGaps(me, job);
+  var box = document.getElementById("aiBox");
+  var h = '<div style="text-align:left">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(job.title)+'</b><span style="font-size:22px;font-weight:800;color:var(--primary)">'+score+'%</span></div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin:4px 0 10px">AI Match Score</div>';
+  if(gaps.length===0){ h += '<p style="font-size:13px;color:var(--ok);margin:6px 0">✓ Fully Qualified</p>'; }
+  else {
+    h += '<div style="font-size:12px;font-weight:700;color:var(--muted)">Gaps:</div><ul style="margin:4px 0 0 18px;font-size:13px">';
+    for(var i=0;i<gaps.length;i++){ h += '<li>'+esc(gaps[i])+'</li>'; }
+    h += '</ul>';
+  }
+  h += '</div>';
+  box.innerHTML = h;
+}
+
+/* 申請 Modal */
+function openApply(){
+  var open = STATE.jobs.filter(function(j){return j.status==="open";});
+  var opts = "";
+  for(var i=0;i<open.length;i++){ opts += '<option value="'+open[i].id+'">'+esc(open[i].title)+'（'+esc(open[i].dept)+'）</option>'; }
+  showModal(t("applyTitle"),
+    '<div class="field"><label>'+t("targetJob")+'</label><select id="applyJob">'+opts+'</select></div>'+
+    '<div class="field"><label>'+t("applyReason")+'</label><textarea id="applyReason" rows="3" placeholder="'+t("reasonPlaceholder")+'"></textarea></div>'+
+    '<div class="notice"><div>'+t("workflowNotice")+'</div></div>'+
+    '<button class="btn btn-p" style="width:100%" onclick="submitApply()">'+t("submitApply")+'</button>');
+}
+function submitApply(){
+  var jid = document.getElementById("applyJob").value;
+  var reason = document.getElementById("applyReason").value.trim();
+  if(!reason){ toast("Please fill in reason"); return; }
+  var job = jobById(jid);
+  var tItem = {
+    id: uid("T"), empId: EMPLOYEE.id, empName: EMPLOYEE.name,
+    fromDept: EMPLOYEE.dept, targetJobId: jid, reason: reason,
+    perf: { rating:"B", kpi:78, review360:80, note:"Synced from PMS." },
+    status:"manager",
+    timeline: [{ s:"Submitted", t:Date.now(), d:"Applied for "+job.title }]
+  };
+  STATE.transfers.unshift(tItem);
+  saveState(); closeModal(); render(); toast(t("toastApplySuccess"));
+}
+
+/* 上傳認證 Modal */
+function openCertForm(){
+  showModal(t("uploadCertTitle"),
+    '<div class="field"><label>'+t("certName")+'</label><input id="certName"></div>'+
+    '<div class="field"><label>'+t("certIssuer")+'</label><input id="certIssuer"></div>'+
+    '<button class="btn btn-p" style="width:100%" onclick="submitCert()">Submit</button>');
+}
+function submitCert(){
+  var name = document.getElementById("certName").value.trim();
+  var issuer = document.getElementById("certIssuer").value.trim();
+  if(!name || !issuer){ toast("Please fill required fields"); return; }
+  STATE.certs.unshift({ id: uid("C"), empId: EMPLOYEE.id, name:name, issuer:issuer, status:"pending", date:Date.now() });
+  saveState(); closeModal(); render(); toast(t("toastCertSuccess"));
+}
+
+/* 申訴 */
+function appeal(id){
+  showModal(t("appealTitle"),
+    '<div class="field"><label>'+t("appealContent")+'</label><textarea id="appealText" rows="3" placeholder="'+t("appealPlaceholder")+'"></textarea></div>'+
+    '<button class="btn btn-warn" style="width:100%" onclick="submitAppeal(\''+id+'\')">'+t("submitAppeal")+'</button>');
+}
+function submitAppeal(id){
+  var text = document.getElementById("appealText").value.trim();
+  if(!text){ toast("Please fill appeal content"); return; }
+  var tItem = transferById(id);
+  tItem.status = "appeal";
+  tItem.appealText = text;
+  tItem.timeline.push({ s:"Appeal Submitted", t:Date.now(), d:text });
+  saveState(); closeModal(); render(); toast(t("toastAppealSuccess"));
+}
+
+/* ================= 主管視圖 ================= */
+function viewManager(){
+  var h = "";
+  h += '<div class="grid grid-3">';
+  h += '<div class="stat"><div class="num">84%</div><div class="lbl">'+t("teamHealth")+'</div></div>';
+  h += '<div class="stat"><div class="num">12</div><div class="lbl">'+t("members")+'</div></div>';
+  h += '<div class="stat"><div class="num">'+pendingCount("manager")+'</div><div class="lbl">'+t("pendingReview")+'</div></div>';
+  h += '</div>';
+
+  h += '<div class="card" style="margin-top:14px"><h3>'+t("teamHealth")+'</h3><div class="gauge-wrap">';
+  h += '<div class="gauge"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#2563eb" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="'+Math.round(314*(1-0.84))+'"/></svg><div class="gv">84%</div></div>';
+  h += '<div><p style="font-size:13px;line-height:1.8">'+t("skillCoverage")+'：<b>86%</b><br>'+t("gapNotice")+'：<b>3</b><br>'+t("suggestNotice")+'</p></div></div></div>';
+
+  // 待初審轉職
+  h += '<div class="section-title"><h2>'+t("transferReview")+'</h2><span class="hint">'+t("perfSyncNotice")+'</span></div>';
+  var pending = STATE.transfers.filter(function(tItem){return tItem.status==="manager";});
+  if(pending.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var i=0;i<pending.length;i++){
+    var tItem = pending[i]; var job = jobById(tItem.targetJobId);
+    h += '<div class="list-item" style="cursor:default"><div class="row"><div><span class="ttl">'+esc(tItem.empName)+'</span> <span class="badge b-plain">'+esc(tItem.fromDept)+'</span></div>'+statusBadge(tItem.status)+'</div>';
+    h += '<div class="sub">'+esc(job?job.title:"-")+'（'+esc(job?job.dept:"-")+'）</div>';
+    h += '<div class="desc">'+esc(tItem.reason)+'</div>';
+    h += '<div class="perf"><div class="p">Rating <b>'+tItem.perf.rating+'</b></div><div class="p">KPI <b>'+tItem.perf.kpi+'%</b></div><div class="p">360 Review <b>'+tItem.perf.review360+'</b></div></div>';
+    h += '<div class="actions"><button class="btn btn-ok btn-sm" onclick="managerDecision(\''+tItem.id+'\',true)">'+t("approveBtn")+'</button><button class="btn btn-bad btn-sm" onclick="managerDecision(\''+tItem.id+'\',false)">'+t("rejectBtn")+'</button></div></div>';
+  }
+
+  // 認證審核
+  h += '<div class="section-title"><h2>'+t("certReview")+'</h2></div>';
+  var pendingCerts = STATE.certs.filter(function(c){return c.status==="pending";});
+  if(pendingCerts.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var c=0;c<pendingCerts.length;c++){
+    var cert = pendingCerts[c]; var emp = empById(cert.empId);
+    h += '<div class="list-item" style="cursor:default"><div class="row"><div><span class="ttl">'+esc(cert.name)+'</span></div>'+certBadge(cert.status)+'</div>';
+    h += '<div class="sub">'+esc(emp?emp.name:cert.empId)+' ｜ '+esc(cert.issuer)+'</div>';
+    h += '<div class="actions"><button class="btn btn-ok btn-sm" onclick="certDecision(\''+cert.id+'\',true)">'+t("certApprove")+'</button><button class="btn btn-bad btn-sm" onclick="certDecision(\''+cert.id+'\',false)">'+t("rejectBtn")+'</button></div></div>';
+  }
+  return h;
+}
+function pendingCount(st){ var n=0; for(var i=0;i<STATE.transfers.length;i++){ if(STATE.transfers[i].status===st) n++; } return n; }
+
+function managerDecision(id, ok){
+  var tItem = transferById(id); if(!tItem) return;
+  if(ok){
+    tItem.status = "hr";
+    tItem.timeline.push({ s:"Manager Approved", t:Date.now(), d:"Approved by Manager" });
+    saveState(); render(); toast("Approved");
+  } else {
+    tItem.status = "rejected";
+    tItem.timeline.push({ s:"Manager Rejected", t:Date.now(), d:"Rejected by Manager" });
+    saveState(); render(); toast("Rejected");
+  }
+}
+function certDecision(id, ok){
+  var cert = certById(id); if(!cert) return;
+  cert.status = ok ? "approved" : "rejected";
+  saveState(); render(); toast("Updated");
+}
+
+/* ================= 人事部視圖 ================= */
+function viewHR(){
+  var h = "";
+  h += '<div class="grid grid-4">';
+  h += '<div class="stat"><div class="num">'+pendingCount("hr")+'</div><div class="lbl">'+t("hrPending")+'</div></div>';
+  h += '<div class="stat"><div class="num">'+pendingCount("target")+'</div><div class="lbl">'+t("hrTarget")+'</div></div>';
+  h += '<div class="stat"><div class="num">'+pendingCount("interview")+'</div><div class="lbl">'+t("hrInterview")+'</div></div>';
+  h += '<div class="stat"><div class="num">'+pendingCount("appeal")+'</div><div class="lbl">'+t("hrAppeal")+'</div></div>';
+  h += '</div>';
+
+  h += '<div class="card" style="margin-top:14px"><h3>'+t("perfModule")+'</h3>';
+  h += '<div class="notice"><div>'+t("perfDesc")+'</div></div></div>';
+
+  // 待終審
+  h += '<div class="section-title"><h2>'+t("hrPending")+'</h2></div>';
+  var hrPending = STATE.transfers.filter(function(tItem){return tItem.status==="hr";});
+  if(hrPending.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var i=0;i<hrPending.length;i++){
+    var tItem = hrPending[i]; var job = jobById(tItem.targetJobId);
+    h += '<div class="list-item" style="cursor:default"><div class="row"><div><span class="ttl">'+esc(tItem.empName)+'</span></div>'+statusBadge(tItem.status)+'</div>';
+    h += '<div class="sub">'+esc(job?job.title:"-")+'</div>';
+    h += '<div class="perf"><div class="p">Rating <b>'+tItem.perf.rating+'</b></div><div class="p">KPI <b>'+tItem.perf.kpi+'%</b></div></div>';
+    h += '<div class="actions"><button class="btn btn-ok btn-sm" onclick="hrDecision(\''+tItem.id+'\',true)">'+t("hrApprove")+'</button><button class="btn btn-bad btn-sm" onclick="hrDecision(\''+tItem.id+'\',false)">'+t("hrReject")+'</button></div></div>';
+  }
+
+  // 申訴覆核
+  h += '<div class="section-title"><h2>'+t("appealReview")+'</h2></div>';
+  var appeals = STATE.transfers.filter(function(tItem){return tItem.status==="appeal";});
+  if(appeals.length===0){ h += '<div class="card empty">N/A</div>'; }
+  for(var a=0;a<appeals.length;a++){
+    var ap = appeals[a];
+    h += '<div class="list-item" style="cursor:default"><div class="row"><div><span class="ttl">'+esc(ap.empName)+'</span></div>'+statusBadge(ap.status)+'</div>';
+    h += '<div class="desc">'+esc(ap.appealText || "-")+'</div>';
+    h += '<div class="actions"><button class="btn btn-ok btn-sm" onclick="hrAppealDecision(\''+ap.id+'\',true)">'+t("appealAccept")+'</button><button class="btn btn-bad btn-sm" onclick="hrAppealDecision(\''+ap.id+'\',false)">'+t("appealKeep")+'</button></div></div>';
+  }
+  return h;
+}
+
+function hrDecision(id, ok){
+  var tItem = transferById(id); if(!tItem) return;
+  tItem.status = ok ? "target" : "rejected";
+  tItem.timeline.push({ s: ok?"HR Passed":"HR Rejected", t:Date.now(), d:"" });
+  saveState(); render(); toast("Updated");
+}
+function hrAppealDecision(id, accept){
+  var tItem = transferById(id); if(!tItem) return;
+  tItem.status = accept ? "manager" : "rejected";
+  tItem.timeline.push({ s: accept?"Appeal Accepted":"Appeal Denied", t:Date.now(), d:"" });
+  saveState(); render(); toast("Updated");
+}
+
+/* ================= 系統管理員視圖 ================= */
+function viewAdmin(){
+  var h = "";
+  h += '<div class="section-title"><h2>'+t("adminTitle")+'</h2></div>';
+  h += '<div class="card">';
+  h += '<h3>'+t("dataMgmt")+'</h3><p style="font-size:13px;color:var(--muted);margin-bottom:12px">'+t("dataDesc")+'</p>';
+  h += '<button class="btn btn-warn btn-sm" onclick="resetState()">'+t("resetData")+'</button>';
+  h += '</div>';
+
+  h += '<div class="card">';
+  h += '<h3>'+t("jobMgmt")+'</h3>';
+  h += '<button class="btn btn-p btn-sm" onclick="openJobForm()">'+t("newJob")+'</button>';
+  h += '<div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>'+t("colTitle")+'</th><th>'+t("colDept")+'</th><th>'+t("colType")+'</th><th>'+t("colCount")+'</th><th>'+t("colStatus")+'</th><th>'+t("colAction")+'</th></tr></thead><tbody>';
+  for(var i=0;i<STATE.jobs.length;i++){
+    var j = STATE.jobs[i];
+    h += '<tr><td><b>'+esc(j.title)+'</b></td><td>'+esc(j.dept)+'</td><td>'+(j.type==="full"?t("fullTime"):t("microProject"))+'</td><td>'+j.headcount+'</td><td><span class="badge '+(j.status==="open"?"b-approved":"b-plain")+'">'+j.status+'</span></td>';
+    h += '<td><button class="btn btn-o btn-sm" onclick="toggleJobStatus(\''+j.id+'\')">Toggle</button></td></tr>';
+  }
+  h += '</tbody></table></div></div>';
+  return h;
+}
+
+function openJobForm(){
+  var opts = "";
+  for(var i=0;i<DEPTS.length;i++){ opts += '<option value="'+DEPTS[i]+'">'+DEPTS[i]+'</option>'; }
+  showModal(t("newJob"),
+    '<div class="field"><label>'+t("jobTitleLabel")+'</label><input id="jTitle"></div>'+
+    '<div class="field"><label>'+t("jobDeptLabel")+'</label><select id="jDept">'+opts+'</select></div>'+
+    '<div class="field"><label>'+t("jobTypeLabel")+'</label><select id="jType"><option value="full">Full-time</option><option value="micro">Micro-project</option></select></div>'+
+    '<div class="field"><label>'+t("jobCountLabel")+'</label><input id="jCount" type="number" value="1"></div>'+
+    '<div class="field"><label>'+t("jobSkillsLabel")+'</label><input id="jSkills"></div>'+
+    '<button class="btn btn-p" style="width:100%" onclick="submitJob()">'+t("submitJob")+'</button>');
+}
+function submitJob(){
+  var title = document.getElementById("jTitle").value.trim();
+  var dept = document.getElementById("jDept").value;
+  var type = document.getElementById("jType").value;
+  var count = parseInt(document.getElementById("jCount").value,10)||1;
+  var rawSkills = document.getElementById("jSkills").value.split(/[,，]/);
+  var skills = [];
+  for(var i=0;i<rawSkills.length;i++){ if(rawSkills[i].trim()) skills.push(rawSkills[i].trim()); }
+  if(!title){ toast("Please enter title"); return; }
+  STATE.jobs.unshift({ id: uid("J"), title:title, dept:dept, type:type, headcount:count, skills:skills, status:"open" });
+  saveState(); closeModal(); render(); toast("Job created");
+}
+function toggleJobStatus(id){
+  var j = jobById(id); if(!j) return;
+  j.status = (j.status==="open") ? "closed" : "open";
+  saveState(); render(); toast("Status updated");
+}
+
+/* 初始化 */
+loadState();
+switchLang("zh-Hant");
+</script>
+</body>
+</html>
